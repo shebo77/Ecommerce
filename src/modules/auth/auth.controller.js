@@ -13,7 +13,7 @@ export const signUp = asyncHandler(async(req , res , next) => {
     return next(new AppError("email already exist" , 409))
   }
   const token = jwt.sign({email} ,process.env.SIGNATURE , {expiresIn : 60*2} )
-  const link = `${req.protocol}://${req.headers.host}/auth/confirm/${token}`
+  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${token}`
   const rfToken = jwt.sign({ email }, process.env.SIGNATURE)
   const rfLink = `${req.protocol}://${req.headers.host}/auth/refreshToken/${rfToken}`
   const emailSend = emailFunc({
