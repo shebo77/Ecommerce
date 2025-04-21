@@ -13,15 +13,15 @@ export const signUp = asyncHandler(async(req , res , next) => {
     return next(new AppError("email already exist" , 409))
   }
   const token = jwt.sign({email} ,process.env.SIGNATURE , {expiresIn : 60*2} )
-  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${token}`
+  const link = `https://ecommerce-eight-roan-46.vercel.app/auth/confirmEmail/${token}`;
   const rfToken = jwt.sign({ email }, process.env.SIGNATURE)
-  const rfLink = `${req.protocol}://${req.headers.host}/auth/refreshToken/${rfToken}`
+  const rfLink = `https://ecommerce-eight-roan-46.vercel.app/auth/confirmEmail/${rfToken}`;
   const emailSend = emailFunc({
-      email,
-      subject: "confirm email",
-      html: `<a href='${link}'>confirm email</a> <br>
-      <a href='${rfLink}'>resend confirmEmail</a>`
-  })
+    email,
+    subject: "confirm email",
+    html: `<a href='${link}'>confirm email</a> <br><a href='${rfLink}'>resend confirmEmail</a>`
+  });
+  
     if(!emailSend){
       return next(new AppError("failed to send this email" , 400))
     }
@@ -34,45 +34,71 @@ user ? res.status(201).json({msg : "done" , user}) : next(new AppError("fail" , 
 
 
 
-export const confirmEmail = asyncHandler(async(req , res , next) => {
-  const {token} = req.params
-   
-  const decoded = jwt.verify(token ,process.env.SIGNATURE)
-  if(!decoded?.email){
-    return next(AppError("invalid token" , 404))
+export const confirmEmail = asyncHandler(async (req, res, next) => {
+  const { token } = req.params;
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.SIGNATURE); 
+  } catch (error) {
+    return next(new AppError("invalid token", 404)); 
   }
 
-  const user = await userModel.findOneAndUpdate({email : decoded.email , confirmed : false} , {confirmed : true} , {new : true})
+  if (!decoded?.email) {
+    return next(new AppError("invalid token", 404)); 
+  }
 
-user ? res.status(201).json({msg : "done"}) : next(new AppError("user not exist or already confirmed" , 400))
-})
+  const user = await userModel.findOneAndUpdate(
+    { email: decoded.email, confirmed: false },
+    { confirmed: true },
+    { new: true }
+  );
+
+  if (!user) {
+    return next(new AppError("user not exist or already confirmed", 400));
+  }
+
+  res.status(200).json({ msg: "done" }); 
+});
+
 
 
 
 export const refreshToken = asyncHandler(async (req, res, next) => {
-  const { token } = req.params
-  const decoded = jwt.verify(token, process.env.SIGNATURE)
+  const { token } = req.params;
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.SIGNATURE);
+  } catch (error) {
+    return next(new AppError("invalid token", 400));
+  }
+
   if (!decoded?.email) {
-      return next(new AppError("invalid token", 400))
+    return next(new AppError("invalid token", 400));
   }
-  const user = await userModel.findOne({ email: decoded.email, confirmed: false })
+
+  const user = await userModel.findOne({ email: decoded.email, confirmed: false });
   if (!user) {
-      return next(new AppError("user not exist or already  confirmed plz log in", 400))
+    return next(new AppError("user not exist or already confirmed", 400));
   }
-  const rfToken = jwt.sign({ email: user.email }, process.env.SIGNATURE, { expiresIn: 60 * 2 })
-  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${rfToken}`
+
+  const rfToken = jwt.sign({ email: user.email }, process.env.SIGNATURE, { expiresIn: '2m' });
+  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${rfToken}`;
+
   const emailSend = emailFunc({
-      email: user.email,
-      subject: "confirm email",
-      html: `<a href='${link}'>confirm email</a> `
-  })
+    email: user.email,
+    subject: "confirm email",
+    html: `<a href='${link}'>confirm email</a>`
+  });
+
   if (!emailSend) {
-      return next(new AppError("fail to send this email", 400))
-
+    return next(new AppError("failed to send this email", 400));
   }
-  res.status(201).json({ msg: "done" })
 
-})
+  res.status(201).json({ msg: "done" });
+});
+
 
 
 
