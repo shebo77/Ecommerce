@@ -4,13 +4,13 @@ import { generalFiled } from "../../utils/generalField.js";
 
 
 export const signUp = {
-    body : joi.object().keys({
-    name : joi.string().min(2).max(15).alphanum().required(),
-    email : generalFiled.email,
-    password : generalFiled.password,
-    rePassword : generalFiled.rePassword,
-    phoneNumber : joi.string().regex(/^01[0125][0-9]{8}$/).required(),
-    address : joi.string().required()
+    body: joi.object().keys({
+        name: joi.string().min(2).max(15).alphanum().required(),
+        email: generalFiled.email,
+        password: generalFiled.password,
+        rePassword: generalFiled.rePassword,
+        phone: joi.string().regex(/^01[0125][0-9]{8}$/).required(),
+        address: joi.string().required()
     }).required()
 }
 
