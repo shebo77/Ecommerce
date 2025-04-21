@@ -9,7 +9,7 @@ export const signUp = {
         email: generalFiled.email,
         password: generalFiled.password,
         rePassword: generalFiled.rePassword,
-        phone: joi.string().regex(/^01[0125][0-9]{8}$/).required(),
+        phoneNumber: joi.string().regex(/^01[0125][0-9]{8}$/).required(),
         address: joi.string().required()
     }).required()
 }

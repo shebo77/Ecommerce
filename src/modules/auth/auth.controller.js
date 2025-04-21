@@ -8,7 +8,7 @@ import  {nanoid}  from "nanoid";
 
 // ************************************signUp*************************************
 export const signUp = asyncHandler(async (req, res, next) => {
-  const { name, email, password, phone, address } = req.body
+  const { name, email, password, phoneNumber, address } = req.body
 
   const emailExist = await userModel.findOne({ email: email.toLowerCase() })
   if (emailExist) {
@@ -29,7 +29,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
 
   }
   const hash = bcrypt.hashSync(password, +process.env.SALT_ROUND)
-  const user = await userModel.create({ name, email, password: hash, phone, address })
+  const user = await userModel.create({ name, email, password: hash, phoneNumber, address })
 
   user ? res.status(201).json({ msg: "done", user }) : next(new AppError("fail", 500))
 
