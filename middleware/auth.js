@@ -29,7 +29,7 @@ export const auth = (roles =[]) => {
         return res.status(400).json({msg : "invalid token payload"})
     }
     const user = await userModel.findById(decoded.id).select("-password")
-    if(user.loggedIn == false){
+    if(user?.loggedIn == false){
         return res.status(400).json({msg : "loggedIn first pls"})
     }
     if(!roles.includes(user.role)){
@@ -37,10 +37,13 @@ export const auth = (roles =[]) => {
     }
   
    
-    if(parseInt(user.changePasswordAt.getTime()/1000) > decoded.iat ){
-        return res.status(401).json({msg : "token expired"})
-    }
-    
+    // if(parseInt(user.changePasswordAt.getTime()/1000) > decoded.iat ){
+    //     return res.status(401).json({msg : "token expired"})
+    // }
+  
+    if (user.changePasswordAt && Math.floor(user.changePasswordAt.getTime() / 1000) > decoded.iat) {
+        return res.status(401).json({ msg: "token expired" });
+      }
     req.user = user
     next()
   }
