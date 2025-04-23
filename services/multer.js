@@ -11,7 +11,7 @@ export const multerCloudinary = (customValidation) => {
   }
    
 
-  const storage = multer.diskStorage({})
+  const storage = multer.memoryStorage()
   const fileFilter = function (req , file , cb){
     if(customValidation.includes(file.mimetype)){
         return cb(null , true)
