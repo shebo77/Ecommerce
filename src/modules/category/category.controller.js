@@ -9,117 +9,47 @@ import brandModel from "../../../db/models/brand.model.js";
 
 
 
-//************************************create category********************************** */
+// ************************************create category********************************** */
 
 
-// export const createCategory = asyncHandler(async(req , res , next) => {
-//   const {name} = req.body
-//   const categoryExist = await categoryModel.findOne({
-//     name : name.toLowerCase()
-//   })
-//   if(categoryExist){
-//     return next(new AppError("category already exist" , 409))
-//   }
+export const createCategory = asyncHandler(async(req , res , next) => {
+  const {name} = req.body
+  const categoryExist = await categoryModel.findOne({
+    name : name.toLowerCase()
+  })
+  if(categoryExist){
+    return next(new AppError("category already exist" , 409))
+  }
 
-//   const slug = slugify(name , {
-//     replacement : "_",
-//     lower : true
-//   })
-//   const customId = nanoid(4)
+  const slug = slugify(name , {
+    replacement : "_",
+    lower : true
+  })
+  const customId = nanoid(4)
   
 
-//   const {secure_url , public_id} = await cloudinary.uploader.upload(req.file.path,{
-//     folder : `Ecommerce/categories/${customId}`
-//   }) 
-//   req.file = `Ecommerce/categories/${customId}`
+  const {secure_url , public_id} = await cloudinary.uploader.upload(req.file.path,{
+    folder : `Ecommerce/categories/${customId}`
+  }) 
+  req.file = `Ecommerce/categories/${customId}`
 
 
-
-//   const category = await categoryModel.create({
-//     name ,
-//     slug,
-//     image : {secure_url , public_id},
-//     customId ,
-//     addedBy : req.user._id
-//    })
-//    req.savedDocument = {model : categoryModel , id : category._id}
-//    if(!category){
-//     await cloudinary.uploader.destroy(public_id)
-//     return next(new AppError("fail" , 500))
-//    }
-//    return  res.status(201).json({msg : "done" , category})
-// })
-
-
-export const createCategory = asyncHandler(async (req, res, next) => {
-  const { name } = req.body;
-
-  const categoryExist = await categoryModel.findOne({
-    name: name.toLowerCase(),
-  });
-
-  if (categoryExist) {
-    return next(new AppError("category already exist", 409));
-  }
-
-  const slug = slugify(name, {
-    replacement: "_",
-    lower: true,
-  });
-
-  const customId = nanoid(4);
-
-
-  const bufferToStream = (buffer) => {
-    import("stream").then(({ Readable }) => {
-      const readable = new Readable();
-      readable.push(buffer);
-      readable.push(null);
-      return readable;
-    });
-  };
-
-  const streamUpload = () => {
-    return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: `Ecommerce/categories/${customId}`,
-        },
-        (error, result) => {
-          if (result) {
-            resolve(result);
-          } else {
-            reject(error);
-          }
-        }
-      );
-
-      bufferToStream(req.file.buffer).then((readable) => readable.pipe(stream));
-    });
-  };
-
-  const result = await streamUpload();
 
   const category = await categoryModel.create({
-    name,
+    name ,
     slug,
-    image: {
-      secure_url: result.secure_url,
-      public_id: result.public_id,
-    },
-    customId,
-    addedBy: req.user._id,
-  });
+    image : {secure_url , public_id},
+    customId ,
+    addedBy : req.user._id
+   })
+   req.savedDocument = {model : categoryModel , id : category._id}
+   if(!category){
+    await cloudinary.uploader.destroy(public_id)
+    return next(new AppError("fail" , 500))
+   }
+   return  res.status(201).json({msg : "done" , category})
+})
 
-  req.savedDocument = { model: categoryModel, id: category._id };
-
-  if (!category) {
-    await cloudinary.uploader.destroy(result.public_id);
-    return next(new AppError("fail", 500));
-  }
-
-  return res.status(201).json({ msg: "done", category });
-});
 
 
 
