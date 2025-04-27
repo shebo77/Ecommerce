@@ -145,6 +145,15 @@ if(paymentMethod == "card"){
   
 const stripe = new Stripe(process.env.stripe_key)
 
+if(req.body.coupon){
+  const coupon = await stripe.coupons.create({percent_off : req.body.coupon.amount , duration : "once"})
+  req.body.couponId = coupon.id
+
+}
+
+
+
+
  const session = await payment({
   stripe,
   payment_method_types : ["card"],
@@ -161,17 +170,18 @@ return {  price_data : {
   product_data : {
     name : product.title
   },
-  unit_amount : product.priceAfterDiscount * 100
+  unit_amount : product.price * 100
  },
 quantity : product.quantity
 
 }
 
-})
+}),
+discounts : req.body.couponId?[{coupon : req.body.couponId}] : []
 
 
 })
-res.status(200).json({ msg: "done", order , url : session.url , session })
+ return res.status(200).json({ msg: "done", order , url : session.url , session })
 }
 
   order

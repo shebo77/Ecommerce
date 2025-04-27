@@ -15,7 +15,7 @@ import Stripe  from "stripe";
 }={
 
 }){
-// const stripe = new Stripe(process.env.stripe_key)
+stripe = new Stripe(process.env.stripe_key)
 const session = await stripe.checkout.sessions.create({
     payment_method_types,
     mode ,

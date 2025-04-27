@@ -18,7 +18,7 @@ export const createOrder = {
         .min(1)
         .required(),
       address: joi.string().required(),
-      paymentMethod: joi.string().valid("cash", "visa").required(),
+      paymentMethod: joi.string().valid("cash", "card").required(),
       couponCode: joi.string(),
     })
     .with("productId", "quantity")

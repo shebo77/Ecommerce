@@ -37,13 +37,11 @@ export const auth = (roles =[]) => {
     }
   
    
-    // if(parseInt(user.changePasswordAt.getTime()/1000) > decoded.iat ){
-    //     return res.status(401).json({msg : "token expired"})
-    // }
+    if(parseInt(user?.changePasswordAt?.getTime()/1000) > decoded.iat ){
+        return res.status(401).json({msg : "token expired"})
+    }
   
-    if (user.changePasswordAt && Math.floor(user.changePasswordAt.getTime() / 1000) > decoded.iat) {
-        return res.status(401).json({ msg: "token expired" });
-      }
+   
     req.user = user
     next()
   }
