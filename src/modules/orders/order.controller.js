@@ -135,48 +135,45 @@ export const createOrder = asyncHandler(async (req, res, next) => {
   //   })
 
   if (paymentMethod == "card") {
-    const stripe = new Stripe(process.env.stripe_key);
+    const stripe = new Stripe(process.env.stripe_key)
 
     if (req.body.coupon) {
-      const coupon = await stripe.coupons.create({
-        percent_off: req.body.coupon.amount,
-        duration: "once",
-      });
-      req.body.couponId = coupon.id;
-    }
+      const coupon = await stripe.coupons.create({ percent_off: req.body.coupon.amount, duration: "once" })
+      req.body.couponId = coupon.id
+      console.log(coupon);
 
+    }
     const session = await payment({
       stripe,
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: req.user.email,
       metadata: {
-        order: order._id.toString(),
+        orderId: order._id.toString(),
       },
-      success_url: `${req.protocol}://${req.headers.host}/order/success`,
-      cancel_url: `${req.protocol}://${req.headers.host}/order/cancel`,
+      success_url: `${req.protocol}://${req.headers.host}/orders/success`,
+      cancel_url: `${req.protocol}://${req.headers.host}/orders/cancel`,
       line_items: order.products.map((product) => {
         return {
           price_data: {
-            currency: "EGP",
+            currency: "egp",
             product_data: {
               name: product.title,
             },
             unit_amount: product.price * 100,
           },
           quantity: product.quantity,
-        };
+        }
       }),
-      discounts: req.body.couponId ? [{ coupon: req.body.couponId }] : [],
-    });
-    return res.status(200).json({ msg: "done", order, url: session.url });
+      discounts: req.body.couponId ? [{ coupon: req.body.couponId }] : []
+
+    })
+    return res.status(201).json({ msg: "done", order, url: session.url });
+
   }
 
-  order
-    ? res.status(200).json({ msg: "done", order })
-    : next(new AppError("fail", 500));
+  return res.status(201).json({ msg: "done", order });
 });
-
 export const cancelOrder = asyncHandler(async (req, res, next) => {
   const { orderId } = req.params;
   const { reason } = req.body;
