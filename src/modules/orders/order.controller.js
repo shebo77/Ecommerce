@@ -9,13 +9,6 @@ import { AppError, asyncHandler } from "../../utils/AppError.js";
 import payment from "../../utils/payment.js";
 import { createInvoice } from "../../utils/pdf.js";
 
-
-
-
-
-
-
-
 //------------------------------- create order ----------------------------------//
 
 export const createOrder = asyncHandler(async (req, res, next) => {
@@ -116,73 +109,68 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     );
   }
 
-//  const invoice = {
-//     shipping: {
-//       name: req.user.name,
-//       address: req.user.address,
-//       city: "cairo",
-//       state: "cairo",
-//       country: "Egypt",
-//       postal_code: 94111
-//     },
-//     items: order.products,
-//     subtotal: subPrice,
-//     paid: order.totalPrice,
-//     invoice_nr: order._id,
-//     date: order.createdAt
-//   };
-//   await createInvoice(invoice, "invoice.pdf");
-//   await emailFunc({
-//     email : req.user.email,
-//     subject : "pdf order",
-//     attachments :[{
-//       path : "invoice.pdf",
-//       contentType : "application/pdf"
-//     }]
-//   })
+  //  const invoice = {
+  //     shipping: {
+  //       name: req.user.name,
+  //       address: req.user.address,
+  //       city: "cairo",
+  //       state: "cairo",
+  //       country: "Egypt",
+  //       postal_code: 94111
+  //     },
+  //     items: order.products,
+  //     subtotal: subPrice,
+  //     paid: order.totalPrice,
+  //     invoice_nr: order._id,
+  //     date: order.createdAt
+  //   };
+  //   await createInvoice(invoice, "invoice.pdf");
+  //   await emailFunc({
+  //     email : req.user.email,
+  //     subject : "pdf order",
+  //     attachments :[{
+  //       path : "invoice.pdf",
+  //       contentType : "application/pdf"
+  //     }]
+  //   })
 
-if(paymentMethod == "card"){
-  
-const stripe = new Stripe(process.env.stripe_key)
+  if (paymentMethod == "card") {
+    const stripe = new Stripe(process.env.stripe_key);
 
-if(req.body.coupon){
-  const coupon = await stripe.coupons.create({percent_off : req.body.coupon.amount , duration : "once"})
-  req.body.couponId = coupon.id
+    if (req.body.coupon) {
+      const coupon = await stripe.coupons.create({
+        percent_off: req.body.coupon.amount,
+        duration: "once",
+      });
+      req.body.couponId = coupon.id;
+    }
 
-}
-
-
-
-
- const session = await payment({
-  stripe,
-  payment_method_types : ["card"],
-  mode : "payment",
-  customer_email : req.user.email,
-  metadata : {
-    order : order._id.toString()
-  },
-  success_url : `${req.protocol}://${req.headers.host}/order/success`,
-cancel_url : `${req.protocol}://${req.headers.host}/order/cancel`,
-line_items : order.products.map((product) => {
-return {  price_data : {
-  currency : "EGP",
-  product_data : {
-    name : product.title
-  },
-  unit_amount : product.price * 100
- },
-quantity : product.quantity
-
-}
-
-}),
-discounts : req.body.couponId?[{coupon : req.body.couponId}] : []
-
-
-})
- return res.status(200).json({ msg: "done", order , url : session.url , session })
-}
+    const session = await payment({
+      stripe,
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: req.user.email,
+      metadata: {
+        order: order._id.toString(),
+      },
+      success_url: `${req.protocol}://${req.headers.host}/order/success`,
+      cancel_url: `${req.protocol}://${req.headers.host}/order/cancel`,
+      line_items: order.products.map((product) => {
+        return {
+          price_data: {
+            currency: "EGP",
+            product_data: {
+              name: product.title,
+            },
+            unit_amount: product.price * 100,
+          },
+          quantity: product.quantity,
+        };
+      }),
+      discounts: req.body.couponId ? [{ coupon: req.body.couponId }] : [],
+    });
+    return res.status(200).json({ msg: "done", order, url: session.url });
+  }
 
   order
     ? res.status(200).json({ msg: "done", order })
@@ -207,7 +195,7 @@ export const cancelOrder = asyncHandler(async (req, res, next) => {
   }
   const cancelOrder = await orderModel.updateOne(
     { _id: order._id },
-    { canceledBy: req.user._id, status: "cancel", reason}
+    { canceledBy: req.user._id, status: "cancel", reason }
   );
   if (!cancelOrder) {
     return next(new AppError("fail to cancel this order", 500));

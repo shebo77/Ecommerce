@@ -10,7 +10,7 @@ const couponRouter = Router();
 couponRouter.post(
   "/create",
   validation(headers.headers),
-  auth(validRoles.Admin),
+  auth([...validRoles.Admin , ...validRoles.User]),
   validation(CV.createCoupon),
   CC.createCoupon
 );
@@ -20,7 +20,7 @@ couponRouter.post(
 couponRouter.put(
   "/update/:id",
   validation(headers.headers),
-  auth(validRoles.Admin),
+  auth([...validRoles.Admin , ...validRoles.User]),
   validation(CV.updateCoupon),
   CC.updateCoupon
 );
