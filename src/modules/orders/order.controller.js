@@ -140,7 +140,6 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     if (req.body.coupon) {
       const coupon = await stripe.coupons.create({ percent_off: req.body.coupon.amount, duration: "once" })
       req.body.couponId = coupon.id
-      console.log(coupon);
 
     }
     const session = await payment({
