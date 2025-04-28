@@ -109,30 +109,30 @@ export const createOrder = asyncHandler(async (req, res, next) => {
     );
   }
 
-  //  const invoice = {
-  //     shipping: {
-  //       name: req.user.name,
-  //       address: req.user.address,
-  //       city: "cairo",
-  //       state: "cairo",
-  //       country: "Egypt",
-  //       postal_code: 94111
-  //     },
-  //     items: order.products,
-  //     subtotal: subPrice,
-  //     paid: order.totalPrice,
-  //     invoice_nr: order._id,
-  //     date: order.createdAt
-  //   };
-  //   await createInvoice(invoice, "invoice.pdf");
-  //   await emailFunc({
-  //     email : req.user.email,
-  //     subject : "pdf order",
-  //     attachments :[{
-  //       path : "invoice.pdf",
-  //       contentType : "application/pdf"
-  //     }]
-  //   })
+   const invoice = {
+      shipping: {
+        name: req.user.name,
+        address: req.user.address,
+        city: "cairo",
+        state: "cairo",
+        country: "Egypt",
+        postal_code: 94111
+      },
+      items: order.products,
+      subtotal: subPrice,
+      paid: order.totalPrice,
+      invoice_nr: order._id,
+      date: order.createdAt
+    };
+    await createInvoice(invoice, "invoice.pdf");
+    await emailFunc({
+      email : req.user.email,
+      subject : "pdf order",
+      attachments :[{
+        path : "invoice.pdf",
+        contentType : "application/pdf"
+      }]
+    })
 
   if (paymentMethod == "card") {
     const stripe = new Stripe(process.env.stripe_key)
