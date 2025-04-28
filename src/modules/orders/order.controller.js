@@ -225,28 +225,41 @@ export const cancelOrder = asyncHandler(async (req, res, next) => {
 
 // ********************************** webhook **********************************
 
+import Stripe from 'stripe';
+import { asyncHandler } from '../../utils/AppError.js';
+import orderModel from '../../../db/models/order.model.js';
+
 export const webhook = asyncHandler(async (req, res, next) => {
   const sig = req.headers['stripe-signature'];
+  const stripe = new Stripe(process.env.stripe_key);
 
   let event;
-  const stripe = new Stripe(process.env.stripe_key) 
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.endpointSecret);
   } catch (err) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    console.error("❌ Webhook verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   // Handle the event
-  const { orderId } = event.data.object.metadata
-  if (event.type != "checkout.session.completed") {
-    await orderModel.findOneAndUpdate({ _id: orderId }, { status: "rejected" })
-    return res.status(400).json({ msg: "fail" })
+  const session = event.data.object;
+
+  if (event.type === "checkout.session.completed") {
+    const orderId = session.metadata?.orderId;
+
+    if (!orderId) {
+      console.error("❌ No orderId found in metadata");
+      return res.status(400).json({ msg: "No orderId in metadata" });
+    }
+
+    await orderModel.findByIdAndUpdate(orderId, { status: "placed" });
+    console.log(`✅ Order ${orderId} has been placed successfully.`);
 
   } else {
-    await orderModel.findOneAndUpdate({ _id: orderId }, { status: "placed" })
-    return res.status(200).json({ msg: "success" })
+    console.log(`ℹ️ Unhandled event type ${event.type}`);
+   
   }
 
-})
+  res.status(200).json({ received: true });
+});
