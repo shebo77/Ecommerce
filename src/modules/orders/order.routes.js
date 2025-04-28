@@ -4,6 +4,7 @@ import * as OC from "./order.controller.js";
 import { headers } from "../../utils/generalField.js";
 import { auth, validRoles } from "../../../middleware/auth.js";
 import { validation } from "../../../middleware/validation.js";
+import express from 'express';
 
 
 const orderRouter = Router()
@@ -30,6 +31,7 @@ orderRouter.put(
 
 
 
+orderRouter.post('/webhook', express.raw({type: 'application/json'}), OC.webhook);
 
 
 
